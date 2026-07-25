@@ -1,0 +1,50 @@
+/*
+ * NTC Sensörlü Akıllı Fan Kontrol Sistemi
+ * Arduino Nano + NTC + 2N2222 + 5V Fan
+ */
+
+const int ntcPin = A0;
+const int fanPin = 3;
+
+// Sensörüne göre ayarlanan eşikler
+const int ALT_ESIK = 550;  // Fanın kapanacağı değer
+const int UST_ESIK = 600;  // Fanın tam hız açılacağı değer
+
+void setup() {
+  pinMode(fanPin, OUTPUT);
+  Serial.begin(9600);
+
+  // Başlangıçta fan kapalı
+  analogWrite(fanPin, 0);
+}
+
+void loop() {
+
+  // NTC değerini oku
+  int sensorDegeri = analogRead(ntcPin);
+
+  int fanHizi = 0;
+
+  // Eşik altındaysa fan kapalı
+  if (sensorDegeri < ALT_ESIK) {
+    fanHizi = 0;
+  }
+  else {
+    // Fanın kalkış yapabilmesi için PWM'i 120'den başlat
+    fanHizi = map(sensorDegeri, ALT_ESIK, UST_ESIK, 120, 255);
+  }
+
+  // Güvenlik sınırı
+  fanHizi = constrain(fanHizi, 0, 255);
+
+  // Fanı sür
+  analogWrite(fanPin, fanHizi);
+
+  // Seri monitör bilgileri
+  Serial.print("Sensor: ");
+  Serial.print(sensorDegeri);
+  Serial.print(" | PWM: ");
+  Serial.println(fanHizi);
+
+  delay(200);
+}
